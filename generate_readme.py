@@ -56,16 +56,22 @@ def get_tags(slug):
     return [tag["name"] for tag in result["data"]["question"]["topicTags"]]
 
 
-def get_category(tags):
+def get_categories(tags):
+    categories = []
+
     for category in priority:
         if category in tags:
-            return category
+            categories.append(category)
 
-    return "Other"
+    if not categories:
+        categories.append("Other")
+
+    return categories
 
 
 def main():
     categories = {}
+    solved = set()
 
     for folder in os.listdir("."):
         if not os.path.isdir(folder):
@@ -85,23 +91,25 @@ def main():
             continue
 
         slug = parts[1]
+        solved.add(folder)
 
         try:
             tags = get_tags(slug)
-            category = get_category(tags)
+            task_categories = get_categories(tags)
         except:
-            category = "Other"
+            task_categories = ["Other"]
 
-        if category not in categories:
-            categories[category] = []
+        for category in task_categories:
+            if category not in categories:
+                categories[category] = []
 
-        categories[category].append((int(number), folder))
+            categories[category].append((int(number), folder))
 
     lines = []
 
     lines.append("# LeetCode Solutions")
     lines.append("")
-    lines.append(f"Total solved: **{sum(len(x) for x in categories.values())}**")
+    lines.append(f"Total solved: **{len(solved)}**")
     lines.append("")
 
     for category in priority + ["Other"]:
